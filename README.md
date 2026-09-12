@@ -114,3 +114,13 @@ npm run test       # vitest
 | `lib/scorm-complete.ts` | Hoàn thành SCORM 1.2 / 2004 trong trang player |
 | `store-assets/` | Ảnh cho listing trên cửa hàng (không đóng gói vào tiện ích) |
 | `lib/gemini.ts` | Gọi Gemini với structured output, kiểm tra kết quả bằng zod, và liệt kê model dùng được |
+
+## 💎 Phiên bản Premium 
+
+Bên cạnh phiên bản Free, tôi có phát triển một phiên bản **Premium** với nhiều nâng cấp đáng giá:
+
+- ✨ **Giao diện (UI) nâng cấp:** Thiết kế trau chuốt, mượt mà và mang lại trải nghiệm trực quan hơn.
+- 🚀 **Tính năng mở rộng:** Tối ưu hóa hiệu suất, bổ sung nhiều luồng xử lý thông minh và các chức năng tự động hóa mà bản Free không có.
+- 🛠 **Hỗ trợ ưu tiên:** Nhận các bản cập nhật sớm nhất và hỗ trợ trực tiếp từ nhà phát triển.
+
+Phiên bản này dành riêng cho các nhà tài trợ và những người thích vọc vạch. Nếu bạn thực sự quan tâm và muốn nâng cấp trải nghiệm, **hãy liên hệ trực tiếp với tôi**.
