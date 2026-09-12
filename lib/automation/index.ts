@@ -1,3 +1,5 @@
+import { t } from '@/lib/i18n';
+import { loadLanguage } from '@/lib/storage';
 import { runCourse } from './course';
 import { log, page } from './dom';
 import { notify } from './notify';
@@ -45,7 +47,8 @@ export const runAutomation = (): Promise<unknown> => {
   const route = routes.find(({ fallback, match }) => !fallback && match())
     ?? routes.find(({ fallback, match }) => fallback && match());
   if (!route) return Promise.resolve();
-  return loadState()
+  return loadLanguage()
+    .then(loadState)
     .then((state) => {
       if (!state.enabled) {
         log.info('Tự động học đang tắt — bật trong popup của tiện ích để chạy.');
@@ -56,6 +59,6 @@ export const runAutomation = (): Promise<unknown> => {
     })
     .catch((error: Error) => {
       log.error(error);
-      notify.error('Có lỗi xảy ra', [error.message]);
+      notify.error(t().somethingWentWrong, [error.message]);
     });
 };

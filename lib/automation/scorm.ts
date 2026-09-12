@@ -1,4 +1,5 @@
 import { CONFIG } from '@/lib/config';
+import { t } from '@/lib/i18n';
 import { sendMessage } from '@/lib/messaging';
 import type { ScormResult } from '@/lib/scorm-complete';
 import { log, page, sleep, viewUrl } from './dom';
@@ -10,22 +11,22 @@ import type { State } from './state';
 // trong MAIN world rồi quay lại view.php để kiểm tra "Complete the activity".
 export const launchPlayer = () => {
   const form = document.querySelector<HTMLFormElement>('#scormviewform');
-  if (!form) throw new Error('Không tìm thấy form #scormviewform trên trang SCORM.');
+  if (!form) throw new Error(t().noScormForm);
   const target = new URL(form.action);
   target.search = new URLSearchParams(Array.from(new FormData(form), ([key, value]) => [key, String(value)])).toString();
   target.searchParams.set('mode', 'normal');
   log.info('Mở SCORM player trong tab hiện tại:', target.href);
-  notify.info('Đang mở bài học SCORM...');
+  notify.info(t().scormOpening);
   return sleep(CONFIG.DELAY.NAVIGATE).then(() => location.assign(target.href));
 };
 
 const report = (result: ScormResult) => {
   if (result.ok) {
     log.info('SCORM commit ok:', result);
-    notify.success(`Đã hoàn thành SCORM ${result.version} (${result.status})`);
+    notify.success(t().scormDone(result.version ?? '', result.status ?? ''));
   } else {
     log.error('SCORM chưa hoàn thành:', result);
-    notify.error('Chưa hoàn thành được SCORM', [result.error ?? `Mã lỗi ${result.errorCode}`]);
+    notify.error(t().scormFailed, [result.error ?? t().errorCode(result.errorCode ?? '')]);
   }
 };
 
@@ -44,11 +45,11 @@ const leavePlayer = (state: State, cmid: string | null) => {
 
 export const runPlayer = (state: State) => {
   const cmid = page.params.get('cm') ?? state.dispatch?.cmid ?? null;
-  notify.info('Đang hoàn thành bài học SCORM...');
+  notify.info(t().scormCompleting);
   // Lỗi cũng quay về view.php: trang đó sẽ đưa hoạt động qua giới hạn số lần thử.
   return sendMessage('completeScorm')
     .then(report)
-    .catch((error: Error) => notify.error('Chưa hoàn thành được SCORM', [error.message]))
+    .catch((error: Error) => notify.error(t().scormFailed, [error.message]))
     .then(() => sleep(CONFIG.DELAY.AFTER_SCORM))
     .then(() => leavePlayer(state, cmid));
 };

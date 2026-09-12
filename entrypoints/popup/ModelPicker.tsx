@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import type { GeminiModel } from '@/lib/gemini';
+import { LOCALES, messagesFor } from '@/lib/i18n';
+import type { Language } from '@/lib/i18n';
 import { sendMessage } from '@/lib/messaging';
 import { modelCacheItem } from '@/lib/storage';
 
@@ -12,6 +14,7 @@ type Props = {
   apiKey: string;
   value: string;
   onChange: (model: string) => void;
+  language: Language;
 };
 
 /**
@@ -23,7 +26,7 @@ type Props = {
  *
  * Vẫn dùng được model chưa có trong danh sách: gõ tên rồi chọn dòng "Dùng ... làm tên model".
  */
-export default function ModelPicker({ apiKey, value, onChange }: Props) {
+export default function ModelPicker({ apiKey, value, onChange, language }: Props) {
   const [models, setModels] = useState<GeminiModel[]>([]);
   const [updatedAt, setUpdatedAt] = useState('');
   const [open, setOpen] = useState(false);
@@ -31,6 +34,7 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
   const [active, setActive] = useState(0);
   const [loading, setLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const text = messagesFor(language);
 
   // Danh sách đã tải lần trước; hiện ngay để không phải bấm làm mới mỗi lần mở popup.
   useEffect(() => {
@@ -81,8 +85,8 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
 
   const refresh = () => {
     if (!apiKey.trim()) {
-      toast.error('Nhập Gemini API key trước', {
-        description: 'Danh sách model lấy theo key của bạn.',
+      toast.error(text.enterKeyFirst, {
+        description: text.modelsFollowKey,
       });
       return;
     }
@@ -95,10 +99,10 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
         setUpdatedAt(now);
         return modelCacheItem
           .setValue({ models: list, updatedAt: now })
-          .then(() => toast.success(`Đã tải ${list.length} model`));
+          .then(() => toast.success(text.modelsLoaded(list.length)));
       })
       .catch((error: Error) =>
-        toast.error('Không tải được danh sách model', {
+        toast.error(text.modelsLoadFailed, {
           description: error.message,
         }),
       )
@@ -128,7 +132,7 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
 
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor="model">Model</Label>
+      <Label htmlFor="model">{text.model}</Label>
 
       <Popover.Root open={open} onOpenChange={onOpenChange}>
         {/* Anchor là cả hàng, nên panel rộng bằng hàng và không để lọt nút phía sau ra bên cạnh. */}
@@ -143,13 +147,13 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
                 className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-9 flex-1 items-center justify-between gap-2 rounded-md border px-3 py-1 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 <span className={`truncate ${value ? '' : 'text-muted-foreground'}`}>
-                  {value ? selectedLabel : 'Chọn model'}
+                  {value ? selectedLabel : text.chooseModel}
                 </span>
                 <ChevronsUpDown className="text-muted-foreground size-4 shrink-0 opacity-60" />
               </button>
             </Popover.Trigger>
 
-            <Button size="sm" variant="secondary" disabled={loading} onClick={refresh} title="Tải lại danh sách model">
+            <Button size="sm" variant="secondary" disabled={loading} onClick={refresh} title={text.reloadModels}>
               {loading ? <Loader2 className="animate-spin" /> : <RefreshCw />}
             </Button>
           </div>
@@ -171,7 +175,7 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
                   setActive(0);
                 }}
                 onKeyDown={onKeyDown}
-                placeholder="Tìm hoặc nhập tên model"
+                placeholder={text.searchModels}
                 spellCheck={false}
                 autoComplete="off"
                 className="placeholder:text-muted-foreground h-9 w-full bg-transparent text-xs outline-none"
@@ -207,16 +211,16 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
                 >
                   {/* Tên model dài thì chỉ nó bị cắt, phần chữ giải thích vẫn còn đủ nghĩa. */}
                   <span className="flex min-w-0 items-baseline gap-1">
-                    <span className="text-muted-foreground shrink-0">Dùng</span>
+                    <span className="text-muted-foreground shrink-0">{text.useTypedBefore}</span>
                     <span className="min-w-0 truncate font-medium">“{typed}”</span>
-                    <span className="text-muted-foreground shrink-0">làm tên model</span>
+                    <span className="text-muted-foreground shrink-0">{text.useTypedAfter}</span>
                   </span>
                 </div>
               )}
 
               {matches.length === 0 && !useTyped && (
                 <p className="text-muted-foreground px-2 py-6 text-center text-xs">
-                  Chưa có danh sách model. Bấm nút làm mới bên cạnh.
+                  {text.noModels}
                 </p>
               )}
             </div>
@@ -226,8 +230,8 @@ export default function ModelPicker({ apiKey, value, onChange }: Props) {
 
       <p className="text-muted-foreground text-xs">
         {models.length
-          ? `${models.length} model · cập nhật ${new Date(updatedAt).toLocaleDateString('vi-VN')}`
-          : 'Bấm nút làm mới để tải danh sách model theo API key của bạn.'}
+          ? text.modelCount(models.length, new Date(updatedAt).toLocaleDateString(LOCALES[language]))
+          : text.refreshModelsHint}
       </p>
     </div>
   );

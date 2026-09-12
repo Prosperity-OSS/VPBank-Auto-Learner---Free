@@ -1,4 +1,5 @@
 import { CONFIG } from '@/lib/config';
+import { t } from '@/lib/i18n';
 import { courseIdItem, dispatchItem, triesItem } from '@/lib/storage';
 import { log, page, sleep } from './dom';
 import { notify } from './notify';
@@ -37,18 +38,19 @@ const withForceView = (href: string) => {
   return target.href;
 };
 
+// Danh sách bỏ qua được lưu thành chuỗi cho popup, nên giữ ngôn ngữ lúc lượt chạy kết thúc.
 const finishRun = (leftovers: Activity[], needKey: Activity[]) => {
   const skipped = [
     ...leftovers.filter((activity) => !needKey.includes(activity))
       .map(({ name, completion }) => `${name} — ${completion?.todo.join(', ')}`),
-    ...needKey.map(({ name }) => `${name} — cần Gemini API key`),
+    ...needKey.map(({ name }) => `${name} — ${t().needsGeminiKey}`),
   ];
   if (skipped.length) {
     log.warn(`Dừng: còn ${skipped.length} hoạt động chưa tự hoàn thành được.`, skipped);
-    notify.warning(`Đã dừng — ${skipped.length} hoạt động cần làm thủ công`, skipped);
+    notify.warning(t().stoppedForManual(skipped.length), skipped);
   } else {
     log.info('Khóa học đã hoàn thành.');
-    notify.success('Khóa học đã hoàn thành');
+    notify.success(t().courseDone);
   }
   return disable({ finishedAt: new Date().toISOString(), skipped });
 };
@@ -66,7 +68,7 @@ export const runCourse = (state: State) => {
 
   const attempt = triesOf(next) + 1;
   log.info(`Bài tiếp theo: "${next.name}" (lần ${attempt}/${CONFIG.MAX_TRIES}).`);
-  notify.info(`Đang mở: ${next.name}`, [`Lần thử ${attempt}/${CONFIG.MAX_TRIES}`, ...(next.completion?.todo ?? [])]);
+  notify.info(t().opening(next.name), [t().attempt(attempt, CONFIG.MAX_TRIES), ...(next.completion?.todo ?? [])]);
   next.li.scrollIntoView({ behavior: 'smooth', block: 'center' });
   const href = withForceView(next.link.href);
   return Promise.all([

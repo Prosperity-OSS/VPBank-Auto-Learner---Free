@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { loadLanguage } from '@/lib/storage';
 import App from './App';
 import '@/assets/tailwind.css';
 
@@ -9,8 +10,11 @@ const applyTheme = () => document.documentElement.classList.toggle('dark', dark.
 dark.addEventListener('change', applyTheme);
 applyTheme();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+// Đọc ngôn ngữ trước khi vẽ, để popup không hiện tiếng Việt một nhịp rồi mới đổi sang tiếng Anh.
+loadLanguage().finally(() => {
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+});

@@ -1,5 +1,6 @@
 import { CONFIG } from '@/lib/config';
 import type { QuizAnswers, QuizQuestion } from '@/lib/gemini';
+import { t } from '@/lib/i18n';
 import { sendMessage } from '@/lib/messaging';
 import { cleanText, isVisible, log, page, sleep, viewUrl, waitFor } from './dom';
 import { notify } from './notify';
@@ -13,12 +14,12 @@ const visibleMatch = (selector: string) => () => Array.from(document.querySelect
 
 export const startAttempt = (state: State) => {
   if (!state.geminiKey) {
-    notify.warning('Bỏ qua bài kiểm tra', ['Chưa nhập Gemini API key trong popup.']);
+    notify.warning(t().quizSkipped, [t().noGeminiKey]);
     return goToCourse(state, 'chưa có Gemini API key');
   }
   const button = document.querySelector<HTMLElement>('form[action*="startattempt.php"] [type="submit"]');
-  if (!button) throw new Error('Không tìm thấy nút "Attempt quiz" (có thể đã hết lượt làm bài).');
-  notify.info('Bắt đầu làm bài kiểm tra...');
+  if (!button) throw new Error(t().noAttemptButton);
+  notify.info(t().quizStarting);
   return sleep(CONFIG.DELAY.ACTION).then(() => {
     button.click();
     // Quiz giới hạn thời gian sẽ hiện hộp thoại "Start attempt".
@@ -68,7 +69,7 @@ const applyAnswers = (questions: QuizQuestion[], { answers }: QuizAnswers) => {
 
 const goNext = () => {
   const next = document.querySelector<HTMLElement>('#mod_quiz-next-nav, .submitbtns [name="next"]');
-  if (!next) throw new Error('Không tìm thấy nút "Next page" / "Finish attempt".');
+  if (!next) throw new Error(t().noNextButton);
   next.click();
 };
 
@@ -78,24 +79,24 @@ export const runAttempt = () => {
     log.warn('Trang này không có câu hỏi trắc nghiệm được hỗ trợ — chuyển trang.');
     return sleep(CONFIG.DELAY.ACTION).then(goNext);
   }
-  notify.info(`AI đang giải ${questions.length} câu hỏi...`);
+  notify.info(t().solvingQuestions(questions.length));
   return sendMessage('solveQuiz', questions)
     .then((result) => {
       const count = applyAnswers(questions, result);
-      notify.success(`Đã chọn ${count} đáp án`, [`Chuyển trang sau ${CONFIG.DELAY.AFTER_ANSWER / 1000}s`]);
+      notify.success(t().answersChosen(count), [t().nextPageIn(CONFIG.DELAY.AFTER_ANSWER / 1000)]);
     })
     .then(() => sleep(CONFIG.DELAY.AFTER_ANSWER))
     .then(goNext)
     .catch((error: Error) => {
       log.error('Lỗi khi làm bài:', error);
-      notify.error('Chưa làm được bài kiểm tra', [error.message, 'Tải lại trang (F5) để thử lại.']);
+      notify.error(t().quizFailed, [error.message, t().reloadToRetry]);
     });
 };
 
 export const runSummary = () => {
   const button = document.querySelector<HTMLElement>('#frm-finishattempt [type="submit"], form[action*="processattempt.php"] [type="submit"]');
-  if (!button) throw new Error('Không tìm thấy nút "Submit all and finish".');
-  notify.info('Đang nộp bài...');
+  if (!button) throw new Error(t().noSubmitButton);
+  notify.info(t().submitting);
   return sleep(CONFIG.DELAY.ACTION).then(() => {
     button.click();
     return waitFor(visibleMatch('.modal.show [data-action="save"], .modal.show .btn-primary, .moodle-dialogue-base .btn-primary'), 8000)

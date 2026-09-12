@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { z } from 'zod';
 import { CONFIG } from './config';
+import { t } from './i18n';
 
 export type QuizQuestion = {
   qId: string;
@@ -32,7 +33,7 @@ export const resolveModel = (model?: string) => model?.trim().replace(/^models\/
 
 const client = (apiKey: string) => {
   const key = apiKey.trim();
-  if (!key) throw new Error('Chưa nhập Gemini API key trong popup.');
+  if (!key) throw new Error(t().noGeminiKey);
   return new GoogleGenAI({ apiKey: key });
 };
 
@@ -60,7 +61,7 @@ const generate = <T extends z.ZodType>(
     })
     .then((response) => {
       const text = stripFences(response.text ?? '');
-      if (!text) throw new Error('Gemini trả về nội dung rỗng.');
+      if (!text) throw new Error(t().emptyGeminiReply);
       return schema.parse(JSON.parse(text));
     });
 };
@@ -78,7 +79,7 @@ export const solveQuiz = (apiKey: string, model: string, questions: QuizQuestion
 
 export const testGeminiKey = (apiKey: string, model: string) =>
   generate(apiKey, model, 'Kiểm tra kết nối: trả về {"ok": true}.', connectionSchema)
-    .then(() => ({ ok: true, message: `Kết nối được ${resolveModel(model)}.` }))
+    .then(() => ({ ok: true, message: t().geminiConnected(resolveModel(model)) }))
     .catch((error: Error) => ({ ok: false, message: error.message }));
 
 /**

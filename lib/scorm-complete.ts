@@ -1,4 +1,13 @@
-export type ScormConfig = { apiTimeout: number; initTimeout: number; pollInterval: number; score: string };
+export type ScormMessages = { timeout: string; initFailed: string };
+
+export type ScormConfig = {
+  apiTimeout: number;
+  initTimeout: number;
+  pollInterval: number;
+  score: string;
+  /** Mẫu chuỗi lỗi theo ngôn ngữ đang chọn (scormTemplates trong i18n.ts). */
+  messages: ScormMessages;
+};
 
 export type ScormResult = {
   ok: boolean;
@@ -33,8 +42,12 @@ export function completeScorm(cfg: ScormConfig): Promise<ScormResult> {
   };
   type Context = { version: Version; adapter: Adapter; api: ScormApi };
 
-  const { apiTimeout, initTimeout, pollInterval, score } = cfg;
+  const { apiTimeout, initTimeout, pollInterval, score, messages } = cfg;
   const TAG = '[Auto-Learner]';
+
+  // Điền {tên} trong mẫu chuỗi lỗi. Mẫu đi qua cfg vì hàm này không import được i18n.ts.
+  const fill = (template: string, values: Record<string, string | number>) =>
+    template.replace(/\{(\w+)\}/g, (placeholder, key: string) => (key in values ? String(values[key]) : placeholder));
 
   const ADAPTERS: Record<Version, Adapter> = {
     '1.2': {
@@ -77,7 +90,9 @@ export function completeScorm(cfg: ScormConfig): Promise<ScormResult> {
     const tick = (): Promise<T> => {
       const value = probe();
       if (value) return Promise.resolve(value);
-      if (Date.now() >= deadline) return Promise.reject(new Error(`${label}: hết ${timeout / 1000}s chờ`));
+      if (Date.now() >= deadline) {
+        return Promise.reject(new Error(fill(messages.timeout, { label, seconds: timeout / 1000 })));
+      }
       return sleep(pollInterval).then(tick);
     };
     return tick();
@@ -111,7 +126,9 @@ export function completeScorm(cfg: ScormConfig): Promise<ScormResult> {
       console.warn(`${TAG} SCO chưa gọi ${initialize}() — tự khởi tạo phiên SCORM.`);
       const result = call(ctx, initialize, '');
       const errorCode = call(ctx, lastError);
-      if (result !== 'true' && !isInitialized(ctx)) throw new Error(`${initialize}("") thất bại (mã lỗi ${errorCode})`);
+      if (result !== 'true' && !isInitialized(ctx)) {
+        throw new Error(fill(messages.initFailed, { method: initialize, code: errorCode }));
+      }
       return true;
     })
     .then(() => ctx);

@@ -9,14 +9,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
-import { BRAND } from '@/lib/branding';
+import { brand } from '@/lib/branding';
 import { CONFIG } from '@/lib/config';
+import { getLanguage, LANGUAGES, LOCALES, messagesFor, setLanguage } from '@/lib/i18n';
+import type { Language } from '@/lib/i18n';
 import { sendMessage } from '@/lib/messaging';
 import {
   dispatchItem,
   enabledItem,
   geminiKeyItem,
   geminiModelItem,
+  languageItem,
   lastRunItem,
   triesItem,
 } from '@/lib/storage';
@@ -34,9 +37,11 @@ const startRun = () => Promise.all([triesItem.removeValue(), dispatchItem.setVal
     ? browser.tabs.reload(tab.id)
     : browser.tabs.create({ url: ACADEMY_URL }).then(() => undefined)));
 
-const formatTime = (iso: string) => new Date(iso).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+const formatTime = (iso: string, language: Language) => new Date(iso).toLocaleString(LOCALES[language], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
 
 export default function App() {
+  // main.tsx đọc ngôn ngữ xong mới vẽ popup, nên giá trị hiện tại đã đúng ngay từ đầu.
+  const [language, setLanguageState] = useState<Language>(getLanguage);
   const [ready, setReady] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
@@ -46,6 +51,13 @@ export default function App() {
   const [savedModel, setSavedModel] = useState<string>(CONFIG.GEMINI_MODEL_DEFAULT);
   const [testing, setTesting] = useState(false);
   const [lastRun, setLastRun] = useState<LastRun>(null);
+
+  const text = messagesFor(language);
+  const { tagline, openCourseSite } = brand(language);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   useEffect(() => {
     Promise.all([
@@ -65,12 +77,18 @@ export default function App() {
       .finally(() => setReady(true));
   }, []);
 
+  const changeLanguage = (next: Language) => {
+    setLanguage(next);
+    setLanguageState(next);
+    languageItem.setValue(next);
+  };
+
   const toggle = (next: boolean) => {
     setEnabled(next);
     enabledItem
       .setValue(next)
       .then(() => (next ? startRun().then(() => window.close()) : undefined))
-      .catch((error: Error) => toast.error('Không bật được tự động học', { description: error.message }));
+      .catch((error: Error) => toast.error(text.enableFailed, { description: error.message }));
   };
 
   // Key và model lưu cùng nhau: đổi model xong mà quên bấm Lưu là lượt chạy sau vẫn dùng model cũ.
@@ -83,15 +101,15 @@ export default function App() {
       setSaved(key);
       setModel(chosen);
       setSavedModel(chosen);
-      toast.success(key ? 'Đã lưu' : 'Đã xóa API key');
+      toast.success(key ? text.saved : text.keyRemoved);
     });
   };
 
   const testKey = () => {
     setTesting(true);
     sendMessage('testGeminiKey', { apiKey: apiKey.trim(), model: model.trim() })
-      .then(({ ok, message }) => (ok ? toast.success('Kết nối thành công', { description: message }) : toast.error('Kết nối thất bại', { description: message })))
-      .catch((error: Error) => toast.error('Kết nối thất bại', { description: error.message }))
+      .then(({ ok, message }) => (ok ? toast.success(text.connectionOk, { description: message }) : toast.error(text.connectionFailed, { description: message })))
+      .catch((error: Error) => toast.error(text.connectionFailed, { description: error.message }))
       .finally(() => setTesting(false));
   };
 
@@ -105,7 +123,20 @@ export default function App() {
           <h1 className="truncate text-sm leading-tight font-semibold">
             {browser.runtime.getManifest().name}
           </h1>
-          <p className="text-muted-foreground text-xs">{BRAND.tagline}</p>
+          <p className="text-muted-foreground text-xs">{tagline}</p>
+        </div>
+        <div role="group" aria-label={text.language} className="bg-muted flex shrink-0 rounded-md p-0.5">
+          {LANGUAGES.map((code) => (
+            <button
+              key={code}
+              type="button"
+              aria-pressed={language === code}
+              onClick={() => changeLanguage(code)}
+              className="text-muted-foreground aria-pressed:bg-background aria-pressed:text-foreground rounded-sm px-1.5 py-0.5 text-[10px] leading-4 font-semibold uppercase aria-pressed:shadow-sm"
+            >
+              {code}
+            </button>
+          ))}
         </div>
         <Badge variant="secondary">v{browser.runtime.getManifest().version}</Badge>
       </header>
@@ -113,13 +144,13 @@ export default function App() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm">
-              <Bot className="size-3.5"/>Tự động học
+              <Bot className="size-3.5"/>{text.autoLearn}
           </CardTitle>
-          <CardDescription>Mở lần lượt các bài chưa hoàn thành trong khóa học đang xem.</CardDescription>
+          <CardDescription>{text.autoLearnDescription}</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-3">
           <Label htmlFor="enabled" className="text-sm font-normal">
-            {enabled ? 'Đang chạy' : 'Đang tắt'}
+            {enabled ? text.running : text.stopped}
           </Label>
           <Switch id="enabled" checked={enabled} disabled={!ready} onCheckedChange={toggle} />
         </CardContent>
@@ -128,7 +159,7 @@ export default function App() {
       <Card className="mt-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm">
-            <KeyRound className="size-3.5" /> Làm bài tự động
+            <KeyRound className="size-3.5" /> {text.autoQuiz}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-2">
@@ -140,13 +171,13 @@ export default function App() {
             spellCheck={false}
             onChange={(event) => setApiKey(event.target.value)}
           />
-          <ModelPicker apiKey={apiKey} value={model} onChange={setModel} />
+          <ModelPicker apiKey={apiKey} value={model} onChange={setModel} language={language} />
           <div className="grid grid-cols-2 gap-2">
             <Button size="sm" disabled={!dirty} onClick={save}>
-              <Save /> Lưu
+              <Save /> {text.save}
             </Button>
             <Button size="sm" variant="secondary" disabled={testing || !apiKey.trim()} onClick={testKey}>
-              {testing ? <Loader2 className="animate-spin" /> : <PlugZap />} Kiểm tra
+              {testing ? <Loader2 className="animate-spin" /> : <PlugZap />} {text.test}
             </Button>
           </div>
         </CardContent>
@@ -156,7 +187,7 @@ export default function App() {
         <>
           <Separator className="my-4" />
           <section className="grid gap-1.5">
-            <h2 className="text-xs font-medium">Lượt chạy lúc {formatTime(lastRun.finishedAt)}</h2>
+            <h2 className="text-xs font-medium">{text.lastRunAt(formatTime(lastRun.finishedAt, language))}</h2>
             {lastRun.skipped.length ? (
               <ul className="text-muted-foreground grid list-disc gap-1 pl-4 text-xs">
                 {lastRun.skipped.map((item) => (
@@ -164,14 +195,14 @@ export default function App() {
                 ))}
               </ul>
             ) : (
-              <p className="text-muted-foreground text-xs">Khóa học đã hoàn thành.</p>
+              <p className="text-muted-foreground text-xs">{text.courseFinished}</p>
             )}
           </section>
         </>
       )}
 
       <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => browser.tabs.create({ url: ACADEMY_URL })}>
-        <ExternalLink /> {BRAND.openCourseSite}
+        <ExternalLink /> {openCourseSite}
       </Button>
 
       <p className="text-muted-foreground mt-3 text-center text-xs">

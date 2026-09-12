@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { QuizQuestion } from '@/lib/gemini';
+import { setLanguage } from '@/lib/i18n';
 
 const { generateContent, list } = vi.hoisted(() => ({ generateContent: vi.fn(), list: vi.fn() }));
 // Phải là class thật: vi.fn(() => ...) không dùng được với `new GoogleGenAI(...)`.
@@ -162,6 +163,24 @@ describe('listModels', () => {
       const [params] = list.mock.calls[0] as [{ config: { pageSize: number; queryBase: boolean } }];
       expect(params.config.queryBase).toBe(true);
       expect(params.config.pageSize).toBeGreaterThan(100);
+    });
+  });
+});
+
+describe('ngôn ngữ', () => {
+  // Các test khác khớp chuỗi tiếng Việt, nên luôn trả về tiếng Việt sau mỗi test ở đây.
+  afterEach(() => setLanguage('vi'));
+
+  it('báo lỗi thiếu key bằng ngôn ngữ đang chọn', () => {
+    setLanguage('en');
+    return expect(solveQuiz('  ', DEFAULT_MODEL, QUESTIONS)).rejects.toThrow(/No Gemini API key/);
+  });
+
+  it('testGeminiKey báo thành công bằng ngôn ngữ đang chọn', () => {
+    setLanguage('en');
+    reply('{"ok":true}');
+    return testGeminiKey('key-abc', 'gemini-3.0-pro').then((result) => {
+      expect(result.message).toBe('Connected to gemini-3.0-pro.');
     });
   });
 });

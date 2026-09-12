@@ -39,7 +39,8 @@ Bản build chỉ chứa mã đã đóng gói, không có mã nguồn gốc.
 ## Sử dụng
 
 1. Mở khóa học trên VPBank Academy (trang `/learning/course/view.php?id=...`).
-2. Mở popup của tiện ích.
+2. Mở popup của tiện ích. Bấm **VI** / **EN** ở góc trên để đổi ngôn ngữ (lần đầu theo ngôn ngữ của trình
+   duyệt); lựa chọn áp dụng cho cả popup và thông báo trên trang khóa học.
 3. (Tùy chọn) Dán **Gemini API key** từ [Google AI Studio](https://aistudio.google.com/apikey), bấm **Lưu** và
    **Kiểm tra**. Không có key thì các bài kiểm tra sẽ bị bỏ qua, phần còn lại vẫn chạy.
 4. (Tùy chọn) Chọn **Model**. Bấm nút làm mới để tải danh sách model mà chính API key của bạn dùng được
@@ -114,6 +115,7 @@ npm run test       # vitest
 | `lib/scorm-complete.ts` | Hoàn thành SCORM 1.2 / 2004 trong trang player |
 | `store-assets/` | Ảnh cho listing trên cửa hàng (không đóng gói vào tiện ích) |
 | `lib/gemini.ts` | Gọi Gemini với structured output, kiểm tra kết quả bằng zod, và liệt kê model dùng được |
+| `lib/i18n.ts` | Chuỗi hiển thị tiếng Việt / tiếng Anh (popup, thông báo trên trang, lỗi) |
 
 ## 💎 Phiên bản Premium 
 

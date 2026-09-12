@@ -1,8 +1,8 @@
 {
   "name": "vpbank-auto-learner-free",
-  "description": "C\u00f4ng c\u1ee5 h\u1ecdc t\u1eadp t\u1ef1 \u0111\u1ed9ng tr\u00ean h\u1ec7 th\u1ed1ng H\u1ecdc vi\u1ec7n VP d\u00e0nh cho CBNV Ng\u00e2n h\u00e0ng Vi\u1ec7t Nam Th\u1ecbnh V\u01b0\u1ee3ng. V\u00ec m\u1ed9t Vi\u1ec7t Nam th\u1ecbnh v\u01b0\u1ee3ng.",
+  "description": "Công cụ học tập tự động trên hệ thống Học viện VP dành cho CBNV Ngân hàng Việt Nam Thịnh Vượng. Vì một Việt Nam thịnh vượng.",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "wxt",

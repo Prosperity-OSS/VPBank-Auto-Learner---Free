@@ -1,6 +1,8 @@
-import { storage } from '#imports';
+import { browser, storage } from '#imports';
 import { CONFIG } from './config';
 import type { GeminiModel } from './gemini';
+import { detectLanguage, isLanguage, setLanguage } from './i18n';
+import type { Language } from './i18n';
 
 export type Dispatch = { cmid: string; launched: boolean } | null;
 export type LastRun = { finishedAt: string; skipped: string[] } | null;
@@ -19,3 +21,13 @@ export const geminiModelItem = storage.defineItem<string>('sync:geminiModel', {
   fallback: CONFIG.GEMINI_MODEL_DEFAULT,
 });
 export const modelCacheItem = storage.defineItem<ModelCache>('local:geminiModels', { fallback: null });
+
+// Ngôn ngữ người dùng chọn trong popup (sync theo hồ sơ); null = chưa chọn, theo ngôn ngữ trình duyệt.
+export const languageItem = storage.defineItem<Language | null>('sync:language', { fallback: null });
+
+// Đặt ngôn ngữ cho t(). Popup, content script và service worker đều phải tự gọi trước khi hiện chữ.
+export const loadLanguage = (): Promise<Language> => languageItem.getValue().then((saved) => {
+  const language = isLanguage(saved) ? saved : detectLanguage(browser.i18n.getUILanguage());
+  setLanguage(language);
+  return language;
+});

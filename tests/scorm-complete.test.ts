@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { messagesFor } from '@/lib/i18n';
 import { completeScorm } from '@/lib/scorm-complete';
 
-const CFG = { apiTimeout: 300, initTimeout: 150, pollInterval: 10, score: '100' };
+const CFG = { apiTimeout: 300, initTimeout: 150, pollInterval: 10, score: '100', messages: messagesFor('en').scormTemplates };
 
 type Store = Record<string, string>;
 
@@ -95,7 +96,7 @@ describe('completeScorm', () => {
   it('báo lỗi khi trang không có SCORM API', () => {
     return completeScorm({ ...CFG, apiTimeout: 30 }).then((result) => {
       expect(result.ok).toBe(false);
-      expect(result.error).toContain('SCORM API');
+      expect(result.error).toBe('SCORM API: timed out after 0.03s');
     });
   });
 });
