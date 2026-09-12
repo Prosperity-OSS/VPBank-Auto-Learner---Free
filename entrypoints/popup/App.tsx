@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ExternalLink, KeyRound, Loader2, PlugZap, Save } from 'lucide-react';
+import { ExternalLink, KeyRound, Loader2, PlugZap, Save, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import { Toaster } from '@/components/ui/sonner';
 import { Badge } from '@/components/ui/badge';
@@ -11,8 +11,16 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { CONFIG } from '@/lib/config';
 import { sendMessage } from '@/lib/messaging';
-import { dispatchItem, enabledItem, geminiKeyItem, lastRunItem, triesItem } from '@/lib/storage';
+import {
+  dispatchItem,
+  enabledItem,
+  geminiKeyItem,
+  geminiModelItem,
+  lastRunItem,
+  triesItem,
+} from '@/lib/storage';
 import type { LastRun } from '@/lib/storage';
+import ModelPicker from './ModelPicker';
 
 const ACADEMY_URL = `${CONFIG.BASE_URL}/`;
 
@@ -32,15 +40,25 @@ export default function App() {
   const [enabled, setEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [saved, setSaved] = useState('');
+  // CONFIG khai báo `as const`, nên phải nói rõ string kẻo state bị bó vào đúng một giá trị.
+  const [model, setModel] = useState<string>(CONFIG.GEMINI_MODEL_DEFAULT);
+  const [savedModel, setSavedModel] = useState<string>(CONFIG.GEMINI_MODEL_DEFAULT);
   const [testing, setTesting] = useState(false);
   const [lastRun, setLastRun] = useState<LastRun>(null);
 
   useEffect(() => {
-    Promise.all([enabledItem.getValue(), geminiKeyItem.getValue(), lastRunItem.getValue()])
-      .then(([on, key, run]) => {
+    Promise.all([
+      enabledItem.getValue(),
+      geminiKeyItem.getValue(),
+      geminiModelItem.getValue(),
+      lastRunItem.getValue(),
+    ])
+      .then(([on, key, savedGeminiModel, run]) => {
         setEnabled(on);
         setApiKey(key);
         setSaved(key);
+        setModel(savedGeminiModel);
+        setSavedModel(savedGeminiModel);
         setLastRun(run);
       })
       .finally(() => setReady(true));
@@ -54,17 +72,23 @@ export default function App() {
       .catch((error: Error) => toast.error('Không bật được tự động học', { description: error.message }));
   };
 
-  const saveKey = () => {
+  // Key và model lưu cùng nhau: đổi model xong mà quên bấm Lưu là lượt chạy sau vẫn dùng model cũ.
+  const dirty = apiKey.trim() !== saved || model.trim() !== savedModel;
+
+  const save = () => {
     const key = apiKey.trim();
-    geminiKeyItem.setValue(key).then(() => {
+    const chosen = model.trim() || CONFIG.GEMINI_MODEL_DEFAULT;
+    Promise.all([geminiKeyItem.setValue(key), geminiModelItem.setValue(chosen)]).then(() => {
       setSaved(key);
-      toast.success(key ? 'Đã lưu API key' : 'Đã xóa API key');
+      setModel(chosen);
+      setSavedModel(chosen);
+      toast.success(key ? 'Đã lưu' : 'Đã xóa API key');
     });
   };
 
   const testKey = () => {
     setTesting(true);
-    sendMessage('testGeminiKey', apiKey.trim())
+    sendMessage('testGeminiKey', { apiKey: apiKey.trim(), model: model.trim() })
       .then(({ ok, message }) => (ok ? toast.success('Kết nối thành công', { description: message }) : toast.error('Kết nối thất bại', { description: message })))
       .catch((error: Error) => toast.error('Kết nối thất bại', { description: error.message }))
       .finally(() => setTesting(false));
@@ -83,7 +107,9 @@ export default function App() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Tự động học</CardTitle>
+          <CardTitle className="flex items-center gap-1.5 text-sm">
+              <Bot className="size-3.5"/>Tự động học
+          </CardTitle>
           <CardDescription>Mở lần lượt các bài chưa hoàn thành trong khóa học đang xem.</CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-3">
@@ -97,11 +123,8 @@ export default function App() {
       <Card className="mt-3">
         <CardHeader>
           <CardTitle className="flex items-center gap-1.5 text-sm">
-            <KeyRound className="size-3.5" /> Bài kiểm tra bằng AI
+            <KeyRound className="size-3.5" /> Làm bài tự động
           </CardTitle>
-          <CardDescription>
-            {saved ? `Dùng ${CONFIG.GEMINI_MODEL} để chọn đáp án.` : 'Chưa có API key — các bài kiểm tra sẽ được bỏ qua.'}
-          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2">
           <Input
@@ -112,8 +135,9 @@ export default function App() {
             spellCheck={false}
             onChange={(event) => setApiKey(event.target.value)}
           />
+          <ModelPicker apiKey={apiKey} value={model} onChange={setModel} />
           <div className="grid grid-cols-2 gap-2">
-            <Button size="sm" disabled={apiKey.trim() === saved} onClick={saveKey}>
+            <Button size="sm" disabled={!dirty} onClick={save}>
               <Save /> Lưu
             </Button>
             <Button size="sm" variant="secondary" disabled={testing || !apiKey.trim()} onClick={testKey}>
@@ -144,6 +168,19 @@ export default function App() {
       <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => browser.tabs.create({ url: ACADEMY_URL })}>
         <ExternalLink /> Mở VPBank Academy
       </Button>
+
+      <p className="text-muted-foreground mt-3 text-center text-xs">
+        From{' '}
+        <a
+          href="https://montserrat.id.vn"
+          target="_blank"
+          rel="noreferrer"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          montserrat
+        </a>{' '}
+        with love 💖
+      </p>
 
       <Toaster position="bottom-center" richColors />
     </div>

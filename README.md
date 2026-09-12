@@ -40,7 +40,10 @@ Bản build chỉ chứa mã đã đóng gói, không có mã nguồn gốc.
 2. Mở popup của tiện ích.
 3. (Tùy chọn) Dán **Gemini API key** từ [Google AI Studio](https://aistudio.google.com/apikey), bấm **Lưu** và
    **Kiểm tra**. Không có key thì các bài kiểm tra sẽ bị bỏ qua, phần còn lại vẫn chạy.
-4. Bật **Tự động học**. Tab khóa học tải lại và tiện ích bắt đầu chạy.
+4. (Tùy chọn) Chọn **Model**. Bấm nút làm mới để tải danh sách model mà chính API key của bạn dùng được
+   (chỉ những model Gemini còn hỗ trợ `generateContent`), gõ để tìm, hoặc tự nhập tên model chưa có trong
+   danh sách. Mặc định là `gemini-2.5-flash`.
+5. Bật **Tự động học**. Tab khóa học tải lại và tiện ích bắt đầu chạy.
 
 Tiện ích tự tắt khi khóa học hoàn thành hoặc khi không còn hoạt động nào tự làm được; popup hiển thị danh sách
 những mục cần làm thủ công (ví dụ khảo sát/feedback).
@@ -61,4 +64,4 @@ npm run test       # vitest
 | `entrypoints/popup/` | Popup React + shadcn/ui |
 | `lib/automation/` | Máy trạng thái tự động học (trang khóa học là bộ lập lịch duy nhất) |
 | `lib/scorm-complete.ts` | Hoàn thành SCORM 1.2 / 2004 trong trang player |
-| `lib/gemini.ts` | Gọi Gemini với structured output và kiểm tra kết quả bằng zod |
+| `lib/gemini.ts` | Gọi Gemini với structured output, kiểm tra kết quả bằng zod, và liệt kê model dùng được |

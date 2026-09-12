@@ -1,8 +1,8 @@
 {
   "name": "vpbank-auto-learner-free",
-  "description": "VPBank Auto Learner Free — tự động học trên VPBank Academy",
+  "description": "Công cụ học tập tự động trên hệ thống Học viện VP dành cho CBNV Ngân hàng Việt Nam Thịnh Vượng. Vì một Việt Nam thịnh vượng.",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
