@@ -1,0 +1,4 @@
+/* Dùng cho popup: chủ đề shadcn + font Inter đóng gói sẵn (có dấu tiếng Việt, không cần tải từ mạng).
+   Content script dùng theme.css để không nhúng font vào CSS chèn lên trang Moodle. */
+@import "./theme.css";
+@import "@fontsource-variable/inter";
