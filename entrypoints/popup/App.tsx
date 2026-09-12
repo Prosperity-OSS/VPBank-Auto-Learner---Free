@@ -177,12 +177,12 @@ export default function App() {
       <p className="text-muted-foreground mt-3 text-center text-xs">
         From{' '}
         <a
-          href="https://montserrat.id.vn"
+          href="https://github.com/Prosperity-OSS"
           target="_blank"
           rel="noreferrer"
           className="underline underline-offset-2 hover:text-foreground"
         >
-          montserrat
+          Prosperity-OSS
         </a>{' '}
         with love 💖
       </p>

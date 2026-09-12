@@ -4,6 +4,8 @@ Tiện ích Chrome/Edge (Manifest V3) tự động học trên [VPBank Academy](
 mở lần lượt các hoạt động chưa hoàn thành của khóa học, hoàn thành bài SCORM, đánh dấu hoàn thành tài liệu và
 làm bài kiểm tra trắc nghiệm bằng Google Gemini.
 
+![Popup của tiện ích](store-assets/screenshot-1.png)
+
 ## Tải xuống
 - Download phiên bản mới nhất (zip) tại [Release](https://github.com/makecolour/VPBank-Auto-Learner---Free/releases/latest)
 - Tới bước [Cài vào trình duyệt](#cài-vào-trình-duyệt)
@@ -77,6 +79,23 @@ Hệ quả: bản trên cửa hàng và bản tự phát hành là **hai tiện 
 khác nhau**. Bản tự phát hành vẫn tự cập nhật qua update server riêng; bản trên
 cửa hàng cập nhật qua cửa hàng.
 
+## Ảnh cho cửa hàng
+
+Ảnh dùng cho listing trên Edge Add-ons (và Chrome Web Store) nằm trong
+`store-assets/`. Thư mục này **không** nằm trong `public/`, nên ảnh không bị
+đóng gói vào tiện ích và không làm nặng bản build.
+
+| Tệp | Kích thước | Ô tương ứng trong Partner Center |
+| --- | --- | --- |
+| `logo-300.png` | 300×300 | Extension logo (bắt buộc) |
+| `screenshot-1.png` | 1280×800 | Screenshot |
+| `screenshot-2.png` | 1280×800 | Screenshot |
+| `promo-440x280.png` | 440×280 | Small promotional tile |
+| `promo-1400x560.png` | 1400×560 | Large promotional tile |
+
+Hai ảnh screenshot chụp popup thật từ bản build `edge-mv3`, không phải ảnh dựng
+tay — nên mỗi lần đổi giao diện popup thì nhớ chụp lại.
+
 ## Kiểm thử
 
 ```bash
@@ -93,4 +112,5 @@ npm run test       # vitest
 | `entrypoints/popup/` | Popup React + shadcn/ui |
 | `lib/automation/` | Máy trạng thái tự động học (trang khóa học là bộ lập lịch duy nhất) |
 | `lib/scorm-complete.ts` | Hoàn thành SCORM 1.2 / 2004 trong trang player |
+| `store-assets/` | Ảnh cho listing trên cửa hàng (không đóng gói vào tiện ích) |
 | `lib/gemini.ts` | Gọi Gemini với structured output, kiểm tra kết quả bằng zod, và liệt kê model dùng được |

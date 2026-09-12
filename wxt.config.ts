@@ -16,25 +16,27 @@ const STORE_TARGETS = ['edge', 'chrome-store'];
 
 const MAX_DESCRIPTION_LENGTH = 132;
 
-// Ngôn ngữ mặc định của tiện ích. Partner Center đọc default_locale + _locales
-// trong gói để biết listing cần những ngôn ngữ nào; không khai báo thì nó mặc
-// định English (United States), bất kể thị trường đã chọn là gì.
-const DEFAULT_LOCALE = 'vi';
+// Ngôn ngữ của tiện ích. Partner Center đọc default_locale + _locales trong gói
+// để biết listing cần những ngôn ngữ nào; không khai báo thì nó mặc định
+// English (United States), bất kể thị trường đã chọn là gì.
+const LOCALES = ['vi', 'en'] as const;
+const DEFAULT_LOCALE: (typeof LOCALES)[number] = 'vi';
 
 // Tên và mô tả theo từng kiểu phát hành. Dùng chung cho manifest và cho
 // _locales để hai nơi không bao giờ lệch nhau.
-const identity = (store: boolean) =>
-  store
-    ? {
-        name: 'VPA Auto Learner',
-        description:
-          'Mở và hoàn thành các bài học trực tuyến còn dang dở, trả lời bài kiểm tra bằng Google Gemini với API key của bạn.',
-      }
-    : {
-        name: 'VPBank Auto Learner Free',
-        description:
-          'Công cụ học tập tự động trên hệ thống Học viện VP dành cho CBNV Ngân hàng Việt Nam Thịnh Vượng. Vì một Việt Nam thịnh vượng.',
-      };
+//
+// Tên là tên riêng nên giữ nguyên ở mọi ngôn ngữ; chỉ mô tả được dịch.
+const identity = (store: boolean) => ({
+  name: store ? 'VPA Auto Learner' : 'VPBank Auto Learner Free',
+  descriptions: {
+    vi: store
+      ? 'Mở và hoàn thành các bài học trực tuyến còn dang dở, trả lời bài kiểm tra bằng Google Gemini với API key của bạn.'
+      : 'Công cụ học tập tự động trên hệ thống Học viện VP dành cho CBNV Ngân hàng Việt Nam Thịnh Vượng. Vì một Việt Nam thịnh vượng.',
+    en: store
+      ? 'Opens and finishes the online lessons you have not completed, and answers quizzes with Google Gemini using your own API key.'
+      : 'Automated learning helper for the VP Academy system, for VPBank staff. For a prosperous Vietnam.',
+  },
+});
 
 const STORE_ICONS = {
   16: 'icon-store/16.png',
@@ -61,15 +63,19 @@ export default defineConfig({
     // khác làm tên sản phẩm là lý do bị từ chối rất thường gặp.
     const store = STORE_TARGETS.includes(browser);
 
-    const { name, description } = identity(store);
+    const { descriptions } = identity(store);
 
     // Chrome caps manifest descriptions at 132 characters, and a store upload is
-    // rejected outright for going over. Fail here rather than at submission.
-    if (description.length > MAX_DESCRIPTION_LENGTH) {
-      throw new Error(
-        `manifest description is ${description.length} characters, the limit is ${MAX_DESCRIPTION_LENGTH}:
-  ${description}`,
-      );
+    // rejected outright for going over. Every locale is checked, not just the
+    // default: a translation is just as capable of blowing the limit.
+    for (const locale of LOCALES) {
+      const text = descriptions[locale];
+      if (text.length > MAX_DESCRIPTION_LENGTH) {
+        throw new Error(
+          `${locale} description is ${text.length} characters, the limit is ${MAX_DESCRIPTION_LENGTH}:
+  ${text}`,
+        );
+      }
     }
 
     return {
@@ -109,19 +115,35 @@ export default defineConfig({
     // public/: nội dung khác nhau giữa bản tự phát hành và bản nộp cửa hàng,
     // còn public/ thì được chép nguyên vẹn cho cả hai.
     'build:publicAssets'(wxt, files) {
-      const { name, description } = identity(STORE_TARGETS.includes(wxt.config.browser));
+      const store = STORE_TARGETS.includes(wxt.config.browser);
+      const { name, descriptions } = identity(store);
 
-      files.push({
-        relativeDest: `_locales/${DEFAULT_LOCALE}/messages.json`,
-        contents: JSON.stringify(
-          {
-            extName: { message: name, description: 'Tên tiện ích' },
-            extDescription: { message: description, description: 'Mô tả ngắn của tiện ích' },
-          },
-          null,
-          2,
-        ),
-      });
+      // public/ được chép nguyên vẹn, nên cả HAI bộ icon sẽ nằm trong mọi bản
+      // build dù manifest chỉ trỏ tới một bộ. Bỏ bộ mà bản này không dùng, để
+      // gói nộp cửa hàng không còn kèm logo cũ.
+      const unusedIcons = store ? 'icon/' : 'icon-store/';
+      const keep = files.filter(
+        (file) => !file.relativeDest.replace(/\\/g, '/').startsWith(unusedIcons),
+      );
+      // Hook nhận chính mảng này, nên phải sửa tại chỗ chứ không gán lại.
+      files.splice(0, files.length, ...keep);
+
+      for (const locale of LOCALES) {
+        files.push({
+          relativeDest: `_locales/${locale}/messages.json`,
+          contents: JSON.stringify(
+            {
+              extName: { message: name, description: 'Tên tiện ích' },
+              extDescription: {
+                message: descriptions[locale],
+                description: 'Mô tả ngắn của tiện ích',
+              },
+            },
+            null,
+            2,
+          ),
+        });
+      }
     },
   },
 
