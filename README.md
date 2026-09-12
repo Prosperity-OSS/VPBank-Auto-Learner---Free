@@ -48,6 +48,35 @@ Bản build chỉ chứa mã đã đóng gói, không có mã nguồn gốc.
 Tiện ích tự tắt khi khóa học hoàn thành hoặc khi không còn hoạt động nào tự làm được; popup hiển thị danh sách
 những mục cần làm thủ công (ví dụ khảo sát/feedback).
 
+## Đóng gói phát hành
+
+Hai kiểu phát hành, khác nhau đúng hai trường trong manifest:
+
+```bash
+npm run zip        # tự phát hành   -> .output/*-chrome.zip
+npm run zip:edge   # Edge Add-ons   -> .output/*-edge.zip
+npm run zip:store  # Chrome Web Store -> .output/*-chrome-store.zip
+```
+
+| | Tự phát hành | Nộp cửa hàng |
+| --- | --- | --- |
+| Tên | VPBank Auto Learner Free | **VPA Auto Learner** |
+| Logo | `public/icon/` | `public/icon-store/` |
+| `update_url` + `key` | có | **không** |
+
+Bản nộp cửa hàng **không được** có `update_url`: cửa hàng tự lo cập nhật và sẽ
+từ chối manifest trỏ sang máy chủ khác. `key` cũng bị bỏ vì cửa hàng tự cấp ID.
+Tên và logo cũng đổi sang trung tính — lấy nhãn hiệu của bên khác làm tên sản
+phẩm là lý do bị từ chối rất thường gặp.
+
+Nhận biết bản cửa hàng qua **target trình duyệt** (`STORE_TARGETS` trong
+`wxt.config.ts`), không qua `--mode`: mode khác `production` khiến Vite build ra
+bản dev, nhúng cả đường dẫn tuyệt đối của máy build vào bundle.
+
+Hệ quả: bản trên cửa hàng và bản tự phát hành là **hai tiện ích khác nhau, ID
+khác nhau**. Bản tự phát hành vẫn tự cập nhật qua update server riêng; bản trên
+cửa hàng cập nhật qua cửa hàng.
+
 ## Kiểm thử
 
 ```bash

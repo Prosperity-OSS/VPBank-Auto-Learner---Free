@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
+import { BRAND } from '@/lib/branding';
 import { CONFIG } from '@/lib/config';
 import { sendMessage } from '@/lib/messaging';
 import {
@@ -97,12 +98,16 @@ export default function App() {
   return (
     <div className="bg-background text-foreground w-[360px] p-4">
       <header className="mb-4 flex items-center gap-2.5">
-        <img src="/icon/48.png" alt="" className="size-8" />
+        {/* Lấy từ manifest để bản cửa hàng dùng đúng bộ icon riêng của nó. */}
+        <img src={`/${browser.runtime.getManifest().icons![48]}`} alt="" className="size-8" />
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-sm leading-tight font-semibold">VPBank Auto Learner</h1>
-          <p className="text-muted-foreground text-xs">Tự động học trên VPBank Academy</p>
+          {/* Tên lấy thẳng từ manifest để bản cửa hàng và bản tự phát hành không lệch nhau. */}
+          <h1 className="truncate text-sm leading-tight font-semibold">
+            {browser.runtime.getManifest().name}
+          </h1>
+          <p className="text-muted-foreground text-xs">{BRAND.tagline}</p>
         </div>
-        <Badge variant="secondary">Free v{browser.runtime.getManifest().version}</Badge>
+        <Badge variant="secondary">v{browser.runtime.getManifest().version}</Badge>
       </header>
 
       <Card>
@@ -166,7 +171,7 @@ export default function App() {
       )}
 
       <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => browser.tabs.create({ url: ACADEMY_URL })}>
-        <ExternalLink /> Mở VPBank Academy
+        <ExternalLink /> {BRAND.openCourseSite}
       </Button>
 
       <p className="text-muted-foreground mt-3 text-center text-xs">

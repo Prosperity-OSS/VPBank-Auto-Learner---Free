@@ -34,7 +34,7 @@ export function completeScorm(cfg: ScormConfig): Promise<ScormResult> {
   type Context = { version: Version; adapter: Adapter; api: ScormApi };
 
   const { apiTimeout, initTimeout, pollInterval, score } = cfg;
-  const TAG = '[VPBank-AL Free]';
+  const TAG = '[Auto-Learner]';
 
   const ADAPTERS: Record<Version, Adapter> = {
     '1.2': {

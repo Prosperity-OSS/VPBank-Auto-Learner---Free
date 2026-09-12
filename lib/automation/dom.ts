@@ -1,7 +1,7 @@
 import { CONFIG } from '@/lib/config';
 
 // Tiện ích DOM dùng chung cho tự động hóa trên trang Moodle.
-const TAG = '[VPBank-AL Free]';
+const TAG = '[Auto-Learner]';
 
 export const log = {
   info: (...args: unknown[]) => console.log(TAG, ...args),
