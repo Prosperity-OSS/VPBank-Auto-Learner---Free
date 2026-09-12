@@ -1,8 +1,8 @@
 import { CONFIG } from '@/lib/config';
-import { solveQuiz, testGeminiKey } from '@/lib/gemini';
+import { listModels, solveQuiz, testGeminiKey } from '@/lib/gemini';
 import { onMessage } from '@/lib/messaging';
 import { completeScorm, type ScormResult } from '@/lib/scorm-complete';
-import { geminiKeyItem } from '@/lib/storage';
+import { geminiKeyItem, geminiModelItem } from '@/lib/storage';
 
 // Service worker: tiêm completeScorm vào MAIN world của player.php và gọi Gemini cho bài kiểm tra.
 export default defineBackground(() => {
@@ -20,7 +20,12 @@ export default defineBackground(() => {
         ?? { ok: false, error: 'Không nhận được kết quả từ trang SCORM.' });
   });
 
-  onMessage('solveQuiz', ({ data }) => geminiKeyItem.getValue().then((apiKey) => solveQuiz(apiKey, data)));
+  onMessage('solveQuiz', ({ data }) => Promise
+    .all([geminiKeyItem.getValue(), geminiModelItem.getValue()])
+    .then(([apiKey, model]) => solveQuiz(apiKey, model, data)));
 
-  onMessage('testGeminiKey', ({ data }) => testGeminiKey(data));
+  // Popup gửi kèm key và model đang gõ dở, nên kiểm tra được trước khi lưu.
+  onMessage('testGeminiKey', ({ data }) => testGeminiKey(data.apiKey, data.model));
+
+  onMessage('listGeminiModels', ({ data }) => listModels(data));
 });

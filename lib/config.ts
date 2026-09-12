@@ -22,5 +22,6 @@ export const CONFIG = {
     score: '100',
   },
 
-  GEMINI_MODEL: 'gemini-2.5-flash',
+  // Model dùng khi người dùng chưa chọn gì. Chọn model trong popup (lưu ở storage.sync).
+  GEMINI_MODEL_DEFAULT: 'gemini-2.5-flash',
 } as const;
