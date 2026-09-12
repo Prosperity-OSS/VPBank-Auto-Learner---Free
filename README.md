@@ -31,9 +31,8 @@ Bản build chỉ chứa mã đã đóng gói, không có mã nguồn gốc.
 
 ## Cài vào trình duyệt
 
-1. `npm run build`
-2. Mở `chrome://extensions` (hoặc `edge://extensions`) và bật **Developer mode**.
-3. Bấm **Load unpacked** rồi chọn thư mục `.output/chrome-mv3`.
+1. Mở `chrome://extensions` (hoặc `edge://extensions`) và bật **Developer mode**.
+2. Bấm **Load unpacked** rồi chọn thư mục `.output/chrome-mv3`.
 
 ## Sử dụng
 
