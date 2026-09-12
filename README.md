@@ -4,7 +4,9 @@ Tiện ích Chrome/Edge (Manifest V3) tự động học trên [VPBank Academy](
 mở lần lượt các hoạt động chưa hoàn thành của khóa học, hoàn thành bài SCORM, đánh dấu hoàn thành tài liệu và
 làm bài kiểm tra trắc nghiệm bằng Google Gemini.
 
-Bản Free chỉ giữ phần lõi: một API key Gemini duy nhất, số lần thử lại cố định (3) và giao diện shadcn/ui.
+## Tải xuống
+- Download phiên bản mới nhất (zip) tại [Release](https://github.com/makecolour/VPBank-Auto-Learner---Free/releases/latest)
+- Tới bước [Cài vào trình duyệt](#cài-vào-trình-duyệt)
 
 ## Yêu cầu
 
